@@ -1,0 +1,14 @@
+{
+  "create-pull-request": [
+    "Identified a bug in the login module and fixed it. About to create a pull request to fix it.",
+    "The feature sc-123's development is finished. Creating a PR now.",
+    "Discovered a typo in the error message. Planning to create a pull request to correct it.",
+    "Implemented a new feature for user authentication. Ready to create a pull request.",
+    "Finished coding the shopping cart functionality."
+  ],
+  "add-documentation": [
+    "Finished with the new feature, and starting the documentation.",
+    "Can you document the changes you made to the service?",
+    "Noticed the code for features X and Y need more documentation."
+  ]
+}
