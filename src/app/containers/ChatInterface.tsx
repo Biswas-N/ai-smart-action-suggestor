@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import Message, { IMessage } from '../components/Message';
+import Message, { IMessage } from '@/app/components/Message';
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState<IMessage[]>([

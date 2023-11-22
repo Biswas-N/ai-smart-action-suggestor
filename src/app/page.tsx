@@ -1,4 +1,4 @@
-import ChatInterface from './containers/ChatInterface'
+import ChatInterface from '@/app/containers/ChatInterface'
 
 
 export default function Home() {
