@@ -49,7 +49,11 @@ export default class PineconeUtil {
 
     // Delete index if it  exists
     if (indexes.length > 0) {
-      await this.pinecone.deleteIndex(this.pineconeConfig.indexName);
+      try {
+        await this.pinecone.deleteIndex(this.pineconeConfig.indexName);
+      } catch (e) {
+        console.error(e);
+      }
 
       // Wait until the index is deleted
       while (indexes.length !== 0) {

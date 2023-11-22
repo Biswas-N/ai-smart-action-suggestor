@@ -1,44 +1,34 @@
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai'
 import { useEffect, useState } from 'react';
 import PineconeUtil from '@/utils/pinecone';
+import OpenAIUtil from '@/utils/openai';
 
 
-const openaiApiKey = process.env.OPENAI_API_KEY;
 
 interface IDatasetRecord {
   [key: string]: string[];
 }
 
 export default function PopulateVectorDB() {
-  const [status, setStatus] = useState("Checking for existing Pinecone Index...");
+  const [status, setStatus] = useState("Generating embeddings for Examples dataset...");
 
   useEffect(() => {
     const populateVectorDB = async () => {
       try {
-        const pineconeUtil = new PineconeUtil()
+        const pineconeUtil = new PineconeUtil();
+        const openAiUtil = new OpenAIUtil();
 
         // Read JSON file (replace 'your-data.json' with your actual JSON file path)
         const res = await fetch('/data/dataset.json');
         const jsonData: IDatasetRecord = await res.json();
 
         // Generate embeddings
-        const embeddings = []
-        const embeddingsModel = new OpenAIEmbeddings({
-          openAIApiKey: openaiApiKey,
-        });
-        for (const [action, examples] of Object.entries(jsonData)) {
-          const actionEmbeddings = await embeddingsModel.embedDocuments(examples);
-          for (const [example, embedding] of Object.entries(actionEmbeddings)) {
-            embeddings.push({
-              id: `${action}-${example}`,
-              values: embedding,
-              metadata: { action: action }
-            });
-          }
-        }
+        const embeddings = await openAiUtil.getEmbeddings(jsonData);
 
         // Refresh index in pinecone
+        setStatus("Refreshing index...");
         await pineconeUtil.refreshIndex()
+
+        setStatus("Pushing embeddings to Pinecone...");
         await pineconeUtil.upsertVectors(embeddings)
 
         setStatus("Embeddings pushed to Pinecone successfully.");
@@ -54,7 +44,7 @@ export default function PopulateVectorDB() {
   return (
     <div>
       <h1>{status}</h1>
-      <p>This page reads <strong>smart-action and message</strong> dataset from a JSON file and push it to Pinecone</p>
+      <p>This page reads <strong>smart-action and message</strong> dataset from a <a href='/data/dataset.json' target='_blank'>JSON file</a> and push it to Pinecone</p>
     </div>
   )
 }
