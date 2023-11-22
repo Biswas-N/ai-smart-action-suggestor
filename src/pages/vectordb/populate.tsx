@@ -5,16 +5,21 @@ import PineconeUtil from '@/utils/pinecone';
 
 const openaiApiKey = process.env.OPENAI_API_KEY;
 
+interface IDatasetRecord {
+  [key: string]: string[];
+}
+
 export default function PopulateVectorDB() {
   const [status, setStatus] = useState("Checking for existing Pinecone Index...");
-  const pineconeUtil = new PineconeUtil()
 
   useEffect(() => {
     const populateVectorDB = async () => {
       try {
+        const pineconeUtil = new PineconeUtil()
+
         // Read JSON file (replace 'your-data.json' with your actual JSON file path)
         const res = await fetch('/data/dataset.json');
-        const jsonData = await res.json();
+        const jsonData: IDatasetRecord = await res.json();
 
         // Generate embeddings
         const embeddings = []
