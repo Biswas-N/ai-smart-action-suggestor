@@ -1,45 +1,51 @@
-"use client";
+'use client'
 
-import React, { useState } from 'react';
-import Message, { IMessage } from '@/app/components/Message';
-import OpenAIUtil from '@/utils/openai';
+import React, { useState } from 'react'
+import Message, { IMessage } from '@/app/components/Message'
+import OpenAIUtil from '@/utils/openai'
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState<IMessage[]>([
     // { message: "This is a chat message.", time: new Date().toLocaleTimeString(), smart_actions: [] },
     // { message: "This is another chat message.", time: new Date().toLocaleTimeString(), smart_actions: [{ label: "Yes", associated_data: { sample: "yeah" } }] },
   ])
-  const [input, setInput] = useState("")
-
+  const [input, setInput] = useState('')
 
   const handleSend = () => {
     if (input.length === 0) {
-      return;
+      return
     }
 
-    const newMessage = input;
-    setInput("");
+    const newMessage = input
+    setInput('')
 
     setMessages((prevMessages) => [
       ...prevMessages,
-      { message: newMessage, time: new Date().toLocaleTimeString(), smart_actions: [] },
-    ]);
+      {
+        message: newMessage,
+        time: new Date().toLocaleTimeString(),
+        smart_actions: [],
+      },
+    ])
 
-    const openAiUtil = new OpenAIUtil();
-    openAiUtil.getSuggestedSmartActions(newMessage).then((smartActions: string[]) => {
-      setMessages((prevMessages) => {
-        const newMessageObj = prevMessages.find((message) => message.message === newMessage);
-        if (newMessageObj) {
-          newMessageObj.smart_actions = smartActions.map((smartAction) => ({
-            label: smartAction,
-            associated_data: {},
-          }));
-        }
-        return [...prevMessages];
-      });
-    });
-  };
-
+    const openAiUtil = new OpenAIUtil()
+    openAiUtil
+      .getSuggestedSmartActions(newMessage)
+      .then((smartActions: string[]) => {
+        setMessages((prevMessages) => {
+          const newMessageObj = prevMessages.find(
+            (message) => message.message === newMessage,
+          )
+          if (newMessageObj) {
+            newMessageObj.smart_actions = smartActions.map((smartAction) => ({
+              label: smartAction,
+              associated_data: {},
+            }))
+          }
+          return [...prevMessages]
+        })
+      })
+  }
 
   return (
     <div className="min-h-screen flex flex-col w-2/4 mx-auto">
@@ -64,12 +70,15 @@ const ChatInterface = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
-        <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600" onClick={handleSend}>
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          onClick={handleSend}
+        >
           Send
         </button>
       </footer>
     </div>
-  );
-};
+  )
+}
 
-export default ChatInterface;
+export default ChatInterface

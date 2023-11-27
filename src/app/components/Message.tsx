@@ -1,17 +1,15 @@
-import React from 'react';
-
+import React from 'react'
 
 export interface IMessage {
-  message: string;
-  time: string;
-  smart_actions?: IMessageSmartAction[];
+  message: string
+  time: string
+  smart_actions?: IMessageSmartAction[]
 }
 
 export interface IMessageSmartAction {
-  label: string;
-  associated_data: object;
+  label: string
+  associated_data: object
 }
-
 
 const Message: React.FC<IMessage> = ({ message, time, smart_actions }) => {
   return (
@@ -33,7 +31,7 @@ const Message: React.FC<IMessage> = ({ message, time, smart_actions }) => {
         </div>
       )}
     </>
-  );
-};
+  )
+}
 
-export default Message;
+export default Message
