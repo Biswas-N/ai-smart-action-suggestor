@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Message, { IMessage } from '@/app/components/Message';
+import OpenAIUtil from '@/utils/openai';
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState<IMessage[]>([
@@ -10,12 +11,35 @@ const ChatInterface = () => {
   ])
   const [input, setInput] = useState("")
 
+
   const handleSend = () => {
-    if (input.length > 0) {
-      setMessages([...messages, { message: input, time: new Date().toLocaleTimeString(), smart_actions: [] }])
-      setInput("")
+    if (input.length === 0) {
+      return;
     }
-  }
+
+    const newMessage = input;
+    setInput("");
+
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { message: newMessage, time: new Date().toLocaleTimeString(), smart_actions: [] },
+    ]);
+
+    const openAiUtil = new OpenAIUtil();
+    openAiUtil.getSuggestedSmartActions(newMessage).then((smartActions: string[]) => {
+      setMessages((prevMessages) => {
+        const newMessageObj = prevMessages.find((message) => message.message === newMessage);
+        if (newMessageObj) {
+          newMessageObj.smart_actions = smartActions.map((smartAction) => ({
+            label: smartAction,
+            associated_data: {},
+          }));
+        }
+        return [...prevMessages];
+      });
+    });
+  };
+
 
   return (
     <div className="min-h-screen flex flex-col w-2/4 mx-auto">

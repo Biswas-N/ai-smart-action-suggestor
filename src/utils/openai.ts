@@ -37,4 +37,11 @@ export default class OpenAIUtil {
 
     return embeddings;
   }
+
+  async getSuggestedSmartActions(newMessage: string): Promise<any> {
+    // Add a wanted delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    return ["smart-action-1", "smart-action-2"];
+  }
 }
