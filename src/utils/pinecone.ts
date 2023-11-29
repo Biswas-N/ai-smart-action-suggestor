@@ -1,36 +1,38 @@
 import { Pinecone } from '@pinecone-database/pinecone'
-import {
-  PineconeRecord,
-  RecordMetadata,
-} from '@pinecone-database/pinecone/dist/data/types'
+import { PineconeRecord } from '@pinecone-database/pinecone/dist/data/types'
+import { ClosestMatchSchema } from '../schemas/pinecone'
 
-interface IPineconeConfig {
+type PineconeConfig = {
   apiKey: string
   environment: string
   indexName: string
 }
 
+export type MessageMetadata = {
+  action: string
+}
+
 export default class PineconeUtil {
   private pinecone: Pinecone
-  private pineconeConfig: IPineconeConfig
+  private pineconeConfig: PineconeConfig
 
-  constructor() {
-    const pineconeApiKey = process.env.PINECONE_API_KEY
-    const pineconeEnvironment = process.env.PINECONE_ENVIRONMENT
-    const pineconeIndexName = process.env.PINECONE_INDEX
-    if (!pineconeApiKey || !pineconeEnvironment || !pineconeIndexName) {
-      throw new Error('Pinecone environment variables are missing.')
-    }
-
-    this.pineconeConfig = {
-      apiKey: pineconeApiKey,
-      environment: pineconeEnvironment,
-      indexName: pineconeIndexName,
-    }
+  constructor(pinconeConfig: PineconeConfig) {
+    this.pineconeConfig = pinconeConfig
     this.pinecone = new Pinecone({
       apiKey: this.pineconeConfig.apiKey,
       environment: this.pineconeConfig.environment,
     })
+  }
+
+  async isIndexReady(): Promise<boolean> {
+    const indexes = await this.pinecone.listIndexes()
+    if (indexes.length === 0) {
+      return false
+    }
+
+    return indexes.find((index) => index.name === this.pineconeConfig.indexName)
+      ? true
+      : false
   }
 
   async refreshIndex(): Promise<void> {
@@ -50,7 +52,7 @@ export default class PineconeUtil {
   async deleteIndex(): Promise<void> {
     let indexes = await this.pinecone.listIndexes()
 
-    // Delete index if it  exists
+    // Delete index if it exists
     if (indexes.length > 0) {
       try {
         await this.pinecone.deleteIndex(this.pineconeConfig.indexName)
@@ -67,9 +69,57 @@ export default class PineconeUtil {
   }
 
   async upsertVectors(
-    embeddings: PineconeRecord<RecordMetadata>[],
-  ): Promise<void> {
-    const index = this.pinecone.index(this.pineconeConfig.indexName)
-    await index.upsert(embeddings)
+    embeddings: PineconeRecord<MessageMetadata>[],
+    waitTillReady = false
+  ): Promise<number> {
+    const index = this.pinecone.index<MessageMetadata>(
+      this.pineconeConfig.indexName,
+    )
+
+    try {
+      // Pinecone's implementation of upsert is not instant, instead it is eventually consistent.
+      // So it is really hard to test this function.
+      await index.upsert(embeddings)
+      while (waitTillReady) {
+        const stats = await index.describeIndexStats()
+        if (stats.totalRecordCount === embeddings.length) {
+          break
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+
+      return embeddings.length
+    } catch (e) {
+      console.error(e)
+      return 0
+    }
+  }
+
+  async getClosestMatch(messageEmbedding: Array<number>): Promise<[string, number] | void> {
+    const index = this.pinecone.index<MessageMetadata>(
+      this.pineconeConfig.indexName,
+    );
+
+    const results = await index.query({
+      vector: messageEmbedding,
+      topK: 1,
+      includeMetadata: true
+    });
+
+    const matches = results.matches;
+
+    if (matches.length === 0) {
+      console.log('No matches found.');
+      return;
+    }
+
+    const match = matches[0];
+    const result = ClosestMatchSchema.safeParse(match);
+    if (!result.success) {
+      console.log('Bad match found.');
+      return;
+    }
+
+    return [result.data.metadata.action, result.data.score];
   }
 }

@@ -14,7 +14,18 @@ export default function PopulateVectorDB() {
   useEffect(() => {
     const populateVectorDB = async () => {
       try {
-        const pineconeUtil = new PineconeUtil()
+        const pineconeApiKey = process.env.PINECONE_API_KEY
+        const pineconeEnvironment = process.env.PINECONE_ENVIRONMENT
+        const pineconeIndexName = process.env.PINECONE_INDEX
+        if (!pineconeApiKey || !pineconeEnvironment || !pineconeIndexName) {
+          throw new Error('Pinecone environment variables are missing.')
+        }
+
+        const pineconeUtil = new PineconeUtil({
+          apiKey: pineconeApiKey,
+          environment: pineconeEnvironment,
+          indexName: pineconeIndexName,
+        })
         const openAiUtil = new OpenAIUtil()
 
         // Read JSON file (replace 'your-data.json' with your actual JSON file path)
