@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-export const LlmSmartActionsResponse = z.object({
-  users_message: z.string({ description: 'The input user message' }),
-  smart_action: z.string({
+export const LlmSmartActionsResponseSchema = z.object({
+  userMessage: z.string({ description: 'The input user message' }),
+  smartAction: z.string({
     description: 'The smart action identified by the AI',
   }),
 })
