@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import Message, { IMessage } from '@/app/components/Message'
-import OpenAIUtil from '@/utils/openai'
+import Message, { IMessage } from '../components/Message'
+import OpenAIUtil from '../../utils/openai'
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState<IMessage[]>([

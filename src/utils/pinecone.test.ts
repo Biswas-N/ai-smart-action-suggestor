@@ -33,7 +33,7 @@ describe('PineconeUtil class', () => {
 
   afterAll(async () => {
     if (pineconeUtil) {
-      await pineconeUtil.deleteIndex();
+      await pineconeUtil.deleteIndex()
     }
   }, 100000)
 
@@ -100,7 +100,9 @@ describe('PineconeUtil class', () => {
 
       // Act
       // Sample user message embedding to find a match for
-      const userMessageEmbedding = Array.from({ length: 1536 }, () => Math.random())
+      const userMessageEmbedding = Array.from({ length: 1536 }, () =>
+        Math.random(),
+      )
       const result = await pineconeUtil.getClosestMatch(userMessageEmbedding)
 
       // Assert

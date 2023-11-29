@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import PineconeUtil from '@/utils/pinecone'
-import OpenAIUtil from '@/utils/openai'
+import PineconeUtil from '../../utils/pinecone'
+import OpenAIUtil from '../../utils/openai'
 
 interface IDatasetRecord {
   [key: string]: string[]

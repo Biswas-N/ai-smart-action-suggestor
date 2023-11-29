@@ -70,7 +70,7 @@ export default class PineconeUtil {
 
   async upsertVectors(
     embeddings: PineconeRecord<MessageMetadata>[],
-    waitTillReady = false
+    waitTillReady = false,
   ): Promise<number> {
     const index = this.pinecone.index<MessageMetadata>(
       this.pineconeConfig.indexName,
@@ -95,31 +95,33 @@ export default class PineconeUtil {
     }
   }
 
-  async getClosestMatch(messageEmbedding: Array<number>): Promise<[string, number] | void> {
+  async getClosestMatch(
+    messageEmbedding: Array<number>,
+  ): Promise<[string, number] | void> {
     const index = this.pinecone.index<MessageMetadata>(
       this.pineconeConfig.indexName,
-    );
+    )
 
     const results = await index.query({
       vector: messageEmbedding,
       topK: 1,
-      includeMetadata: true
-    });
+      includeMetadata: true,
+    })
 
-    const matches = results.matches;
+    const matches = results.matches
 
     if (matches.length === 0) {
-      console.log('No matches found.');
-      return;
+      console.log('No matches found.')
+      return
     }
 
-    const match = matches[0];
-    const result = ClosestMatchSchema.safeParse(match);
+    const match = matches[0]
+    const result = ClosestMatchSchema.safeParse(match)
     if (!result.success) {
-      console.log('Bad match found.');
-      return;
+      console.log('Bad match found.')
+      return
     }
 
-    return [result.data.metadata.action, result.data.score];
+    return [result.data.metadata.action, result.data.score]
   }
 }
