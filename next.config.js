@@ -8,6 +8,7 @@ const nextConfig = {
     PINECONE_ENVIRONMENT: process.env.PINECONE_ENVIRONMENT,
     PINECONE_INDEX: process.env.PINECONE_INDEX,
   },
+  swcMinify: true,
 }
 
 module.exports = nextConfig
