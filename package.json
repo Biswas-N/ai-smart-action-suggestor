@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "lint-fix": "eslint . --fix && prettier --write .",
-    "clean": "rm -rf .next",
-    "test": "jest --passWithNoTests --watchAll"
+    "clean": "rm -rf .next"
   },
   "dependencies": {
     "@pinecone-database/pinecone": "^1.1.2",

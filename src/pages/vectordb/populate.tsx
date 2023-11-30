@@ -36,8 +36,7 @@ export default function PopulateVectorDB() {
           pineconeUtil,
         })
 
-        // Read JSON file (replace 'your-data.json' with your actual JSON file path)
-        const res = await fetch('/data/dataset.json')
+        const res = await fetch('/static/data/dataset.json')
         const jsonData: IDatasetRecord = await res.json()
 
         // Generate embeddings
@@ -65,7 +64,7 @@ export default function PopulateVectorDB() {
       <h1>{status}</h1>
       <p>
         This page reads <strong>smart-action and message</strong> dataset from a{' '}
-        <a href="/data/dataset.json" target="_blank">
+        <a href="/static/data/dataset.json" target="_blank">
           JSON file
         </a>{' '}
         and push it to Pinecone
