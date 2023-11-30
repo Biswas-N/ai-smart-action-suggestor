@@ -26,7 +26,15 @@ export default function PopulateVectorDB() {
           environment: pineconeEnvironment,
           indexName: pineconeIndexName,
         })
-        const openAiUtil = new OpenAIUtil()
+
+        const openAiApiKey = process.env.OPENAI_API_KEY
+        if (!openAiApiKey) {
+          throw new Error('OpenAI API key is missing.')
+        }
+        const openAiUtil = new OpenAIUtil({
+          apiKey: openAiApiKey,
+          pineconeUtil,
+        })
 
         // Read JSON file (replace 'your-data.json' with your actual JSON file path)
         const res = await fetch('/data/dataset.json')

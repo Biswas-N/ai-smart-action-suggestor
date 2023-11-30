@@ -3,12 +3,37 @@
 import React, { useState } from 'react'
 import Message, { IMessage } from '../components/Message'
 import OpenAIUtil from '../../utils/openai'
+import PineconeUtil from '../../utils/pinecone'
+
+const getOpenAIConfig = () => {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY not set')
+  }
+  return {
+    apiKey,
+  }
+}
+
+const getPineconeConfig = () => {
+  const apiKey = process.env.PINECONE_API_KEY
+  const indexName = process.env.PINECONE_INDEX
+  const environment = process.env.PINECONE_ENVIRONMENT
+  if (!apiKey || !indexName || !environment) {
+    throw new Error(
+      'PINECONE_API_KEY, PINECONE_INDEX, or PINECONE_ENVIRONMENT not set',
+    )
+  }
+
+  return {
+    apiKey,
+    indexName,
+    environment,
+  }
+}
 
 const ChatInterface = () => {
-  const [messages, setMessages] = useState<IMessage[]>([
-    // { message: "This is a chat message.", time: new Date().toLocaleTimeString(), smart_actions: [] },
-    // { message: "This is another chat message.", time: new Date().toLocaleTimeString(), smart_actions: [{ label: "Yes", associated_data: { sample: "yeah" } }] },
-  ])
+  const [messages, setMessages] = useState<IMessage[]>([])
   const [input, setInput] = useState('')
 
   const handleSend = () => {
@@ -28,22 +53,31 @@ const ChatInterface = () => {
       },
     ])
 
-    const openAiUtil = new OpenAIUtil()
+    const openAiUtil = new OpenAIUtil({
+      apiKey: getOpenAIConfig().apiKey,
+      pineconeUtil: new PineconeUtil(getPineconeConfig()),
+    })
+
     openAiUtil
       .getSuggestedSmartActions(newMessage)
-      .then((smartActions: string[]) => {
-        setMessages((prevMessages) => {
+      .then((smartAction: string) => {
+        setMessages((prevMessages: Array<IMessage>) => {
           const newMessageObj = prevMessages.find(
             (message) => message.message === newMessage,
           )
           if (newMessageObj) {
-            newMessageObj.smart_actions = smartActions.map((smartAction) => ({
-              label: smartAction,
-              associated_data: {},
-            }))
+            newMessageObj.smart_actions = [
+              {
+                label: smartAction,
+                associated_data: {},
+              },
+            ]
           }
           return [...prevMessages]
         })
+      })
+      .catch((err) => {
+        console.error(err)
       })
   }
 
