@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
-import PineconeUtil from '../../utils/pinecone'
-import OpenAIUtil from '../../utils/openai'
+'use client'
 
-interface IDatasetRecord {
-  [key: string]: string[]
-}
+import { useEffect, useState } from 'react'
+import PineconeUtil from '@/utils/pinecone'
+import OpenAIUtil, { ExampleMessagesWithSmartAction } from '@/utils/openai'
+import { getOpenAIConfig, getPineconeConfig } from '@/utils/config'
 
 export default function PopulateVectorDB() {
   const [status, setStatus] = useState(
@@ -14,30 +13,15 @@ export default function PopulateVectorDB() {
   useEffect(() => {
     const populateVectorDB = async () => {
       try {
-        const pineconeApiKey = process.env.PINECONE_API_KEY
-        const pineconeEnvironment = process.env.PINECONE_ENVIRONMENT
-        const pineconeIndexName = process.env.PINECONE_INDEX
-        if (!pineconeApiKey || !pineconeEnvironment || !pineconeIndexName) {
-          throw new Error('Pinecone environment variables are missing.')
-        }
+        const pineconeUtil = new PineconeUtil(getPineconeConfig())
 
-        const pineconeUtil = new PineconeUtil({
-          apiKey: pineconeApiKey,
-          environment: pineconeEnvironment,
-          indexName: pineconeIndexName,
-        })
-
-        const openAiApiKey = process.env.OPENAI_API_KEY
-        if (!openAiApiKey) {
-          throw new Error('OpenAI API key is missing.')
-        }
         const openAiUtil = new OpenAIUtil({
-          apiKey: openAiApiKey,
+          apiKey: getOpenAIConfig().apiKey,
           pineconeUtil,
         })
 
         const res = await fetch('/static/data/dataset.json')
-        const jsonData: IDatasetRecord = await res.json()
+        const jsonData: ExampleMessagesWithSmartAction = await res.json()
 
         // Generate embeddings
         const embeddings = await openAiUtil.getEmbeddings(jsonData)

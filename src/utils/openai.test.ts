@@ -2,35 +2,20 @@ import { PineconeBadRequestError } from '@pinecone-database/pinecone/dist/errors
 
 import OpenAIUtil from './openai'
 import PineconeUtil from './pinecone'
+import { getOpenAIConfig, getPineconeConfig } from './config'
 
 const createOpenAIUtil = (pineconeUtil: PineconeUtil) => {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    throw new Error('OpenAI API key is missing.')
-  }
-
   return new OpenAIUtil({
-    apiKey,
+    apiKey: getOpenAIConfig().apiKey,
     pineconeUtil,
   })
 }
 
 const createPineconeUtil = () => {
-  const apiKey = process.env.PINECONE_API_KEY
-  const environment = process.env.PINECONE_ENVIRONMENT
-  const indexName = process.env.PINECONE_INDEX + '-test'
-  if (!apiKey || !environment || !indexName) {
-    throw new Error('Missing environment variables')
-  }
-
-  return new PineconeUtil({
-    apiKey,
-    environment,
-    indexName,
-  })
+  return new PineconeUtil(getPineconeConfig())
 }
 
-describe('PineconeUtil class', () => {
+describe('PineconeUtil', () => {
   let openaiUtil: OpenAIUtil
   let pineconeUtil: PineconeUtil
 

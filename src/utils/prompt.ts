@@ -1,6 +1,15 @@
 import { ChatPromptTemplate } from 'langchain/prompts'
 import { LlmSmartActionsResponseSchema } from '../schemas/openai'
 
+export const availableActions = [
+  'create-pull-request',
+  'add-documentation',
+  'lookup-documentation',
+  'site-analytics',
+  'meeting-creation',
+  'github-actions',
+]
+
 const systemTemplate = `
 Persona:
 You are a senior software developer working in a collaborative engineering team. The team uses a chat tool for communication and coordination.
@@ -9,11 +18,8 @@ Context:
 Imagine a scenario where team members interact with you on the chat platform to discuss various aspects of software development and product management. Your goal is to identify what action needs to be taken based on your colleague's message.
 
 Known Actions:
-- create-pull-request
-- create-documentation
-- lookup-documentation
-- assign-task
-- action-not-recognised (if you could not determine the smart action from the Know Actions list)
+${availableActions.map((action) => `- ${action}`).join('\n')}
+- action-not-recognised (if you could not determine the smart action from the above Know Actions list)
 
 Examples:
 {examples}
@@ -35,7 +41,7 @@ export const sampleExamples = LlmSmartActionsResponseSchema.array().parse([
   {
     userMessage:
       'Finished with the new feature, and starting the documentation.',
-    smartAction: 'create-documentation',
+    smartAction: 'add-documentation',
   },
   {
     userMessage:
@@ -44,8 +50,23 @@ export const sampleExamples = LlmSmartActionsResponseSchema.array().parse([
   },
   {
     userMessage:
-      'Feel free to assign @teammate with fixing the authentication bug.',
-    smartAction: 'assign-task',
+      'Do you have access to the number of users who have visited the website in the last 24 hours?',
+    smartAction: 'site-analytics',
+  },
+  {
+    userMessage:
+      'Would you like to meet in 30 mins to discuss the new feature?',
+    smartAction: 'meeting-creation',
+  },
+  {
+    userMessage:
+      'I think we can automate the deployment process using Github Actions.',
+    smartAction: 'github-actions',
+  },
+  {
+    userMessage:
+      'How did the house warming party go? Did you have a good time?',
+    smartAction: 'action-not-recognised',
   },
 ])
 

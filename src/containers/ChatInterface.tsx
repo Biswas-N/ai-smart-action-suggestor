@@ -1,36 +1,10 @@
 'use client'
 
 import React, { useState } from 'react'
-import Message, { IMessage } from '../components/Message'
-import OpenAIUtil from '../../utils/openai'
-import PineconeUtil from '../../utils/pinecone'
-
-const getOpenAIConfig = () => {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY not set')
-  }
-  return {
-    apiKey,
-  }
-}
-
-const getPineconeConfig = () => {
-  const apiKey = process.env.PINECONE_API_KEY
-  const indexName = process.env.PINECONE_INDEX
-  const environment = process.env.PINECONE_ENVIRONMENT
-  if (!apiKey || !indexName || !environment) {
-    throw new Error(
-      'PINECONE_API_KEY, PINECONE_INDEX, or PINECONE_ENVIRONMENT not set',
-    )
-  }
-
-  return {
-    apiKey,
-    indexName,
-    environment,
-  }
-}
+import Message, { IMessage } from '@/components/Message'
+import OpenAIUtil from '@/utils/openai'
+import PineconeUtil from '@/utils/pinecone'
+import { getOpenAIConfig, getPineconeConfig } from '@/utils/config'
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState<IMessage[]>([])
@@ -58,6 +32,7 @@ const ChatInterface = () => {
       pineconeUtil: new PineconeUtil(getPineconeConfig()),
     })
 
+    console.log('Getting suggested smart actions...')
     openAiUtil
       .getSuggestedSmartActions(newMessage)
       .then((smartAction: string) => {
@@ -66,12 +41,10 @@ const ChatInterface = () => {
             (message) => message.message === newMessage,
           )
           if (newMessageObj) {
-            newMessageObj.smart_actions = [
-              {
-                label: smartAction,
-                associated_data: {},
-              },
-            ]
+            newMessageObj.smartAction = {
+              label: smartAction,
+              associated_data: {},
+            }
           }
           return [...prevMessages]
         })
@@ -92,7 +65,7 @@ const ChatInterface = () => {
             key={index}
             message={message.message}
             time={message.time}
-            smart_actions={message.smart_actions}
+            smartAction={message.smartAction}
           />
         ))}
       </main>

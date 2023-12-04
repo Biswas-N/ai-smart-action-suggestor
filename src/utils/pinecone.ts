@@ -1,6 +1,6 @@
 import { Pinecone } from '@pinecone-database/pinecone'
 import { PineconeRecord } from '@pinecone-database/pinecone/dist/data/types'
-import { ClosestMatchSchema } from '../schemas/pinecone'
+import { ClosestMatchSchema, ClosestExamplesSchema } from '../schemas/pinecone'
 
 type PineconeConfig = {
   apiKey: string
@@ -10,6 +10,7 @@ type PineconeConfig = {
 
 export type MessageMetadata = {
   action: string
+  originalMessage: string
 }
 
 export default class PineconeUtil {
@@ -95,9 +96,10 @@ export default class PineconeUtil {
     }
   }
 
-  async getClosestMatch(
+  async getClosesMatchForSmartAction(
     messageEmbedding: Array<number>,
-  ): Promise<[string, number] | void> {
+    action: string,
+  ): Promise<string | void> {
     const index = this.pinecone.index<MessageMetadata>(
       this.pineconeConfig.indexName,
     )
@@ -106,10 +108,36 @@ export default class PineconeUtil {
       vector: messageEmbedding,
       topK: 1,
       includeMetadata: true,
+      filter: {
+        action: { $eq: action },
+      },
+    })
+
+    const parseResult = ClosestExamplesSchema.safeParse(results)
+    if (!parseResult.success) {
+      console.log('Bad matches found.')
+      return
+    }
+
+    const matches = parseResult.data.matches
+    return matches[0].metadata.originalMessage
+  }
+
+  async getClosestMatchs(
+    messageEmbedding: Array<number>,
+    k: number = 1,
+  ): Promise<[string, number] | void> {
+    const index = this.pinecone.index<MessageMetadata>(
+      this.pineconeConfig.indexName,
+    )
+
+    const results = await index.query({
+      vector: messageEmbedding,
+      topK: k,
+      includeMetadata: true,
     })
 
     const matches = results.matches
-
     if (matches.length === 0) {
       console.log('No matches found.')
       return
@@ -118,7 +146,7 @@ export default class PineconeUtil {
     const match = matches[0]
     const result = ClosestMatchSchema.safeParse(match)
     if (!result.success) {
-      console.log('Bad match found.')
+      console.log('Bad matches found.')
       return
     }
 

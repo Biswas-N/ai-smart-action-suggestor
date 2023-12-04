@@ -26,17 +26,6 @@
     "Added some new configuration options. Need to document them for the next release.",
     "Improved error handling in the frontend. Adding comments and updating the documentation."
   ],
-  "Operation-in-Jira": [
-    "Create agile kanban dashboard with stories in the sprint X.",
-    "Setting up a new sprint for upcoming tasks. Any specific stories you'd like to include?",
-    "Assigned myself to a Jira issue for feature implementation. Should I update the sprint board?",
-    "Facing issues with transitioning a task on the board. Can you guide me through the Jira workflow?",
-    "Adding a new sub-task for better tracking. Is it reflected correctly in the sprint board?",
-    "Completed the code review for issue XYZ. Ready to move it to 'Testing' on the Jira board.",
-    "Can we update the priority of the bug I discovered in the last sprint? It's affecting users.",
-    "Creating a sprint report for the team meeting. Any specific metrics you want to highlight?",
-    "Trying to link a Jira issue to an epic. Is there a preferred way to do it in our workflow?"
-  ],
   "lookup-documentation": [
     "Preparing to contribute to Project Y. Can you guide me to its relevant documentation in the knowledge base?",
     "Planning to implement a new feature in Project A. Need to review its documentation first.",
@@ -67,7 +56,7 @@
     "Need to generate API documentation for a new service. Any guidelines or templates available in our knowledge base?",
     "Planning to optimize the frontend performance. Where can I find documentation on frontend optimization techniques used in our projects?"
   ],
-  "netlify-site-analytics": [
+  "site-analytics": [
     "Launching a new marketing campaign for our website. How can I access and analyze the site analytics on Netlify?",
     "Curious about the recent traffic to our landing page. Where can I find detailed analytics for the site on Netlify?",
     "Planning to present our site's performance metrics. How do I access comprehensive analytics data from Netlify?",

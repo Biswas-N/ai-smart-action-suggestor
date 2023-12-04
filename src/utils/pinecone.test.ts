@@ -1,24 +1,14 @@
 import { PineconeRecord } from '@pinecone-database/pinecone/dist/data/types'
 import PineconeUtil, { MessageMetadata } from './pinecone'
 import { PineconeBadRequestError } from '@pinecone-database/pinecone/dist/errors/http'
+import { getPineconeConfig } from './config'
+import exp from 'constants'
 
-describe('PineconeUtil class', () => {
+describe('PineconeUtil', () => {
   let pineconeUtil: PineconeUtil
 
   beforeAll(async () => {
-    // Setup: create an instance of PineconeUtil for testing
-    const pineconeApiKey = process.env.PINECONE_API_KEY
-    const pineconeEnvironment = process.env.PINECONE_ENVIRONMENT
-    const pineconeIndexName = process.env.PINECONE_INDEX + '-test'
-    if (!pineconeApiKey || !pineconeEnvironment || !pineconeIndexName) {
-      throw new Error('Missing environment variables')
-    }
-
-    pineconeUtil = new PineconeUtil({
-      apiKey: pineconeApiKey,
-      environment: pineconeEnvironment,
-      indexName: pineconeIndexName,
-    })
+    pineconeUtil = new PineconeUtil(getPineconeConfig())
 
     try {
       await pineconeUtil.createIndex()
@@ -58,6 +48,7 @@ describe('PineconeUtil class', () => {
           values: Array.from({ length: 1536 }, () => Math.random()),
           metadata: {
             action: 'create-documentation',
+            originalMessage: 'test',
           },
         },
         {
@@ -65,6 +56,7 @@ describe('PineconeUtil class', () => {
           values: Array.from({ length: 1536 }, () => Math.random()),
           metadata: {
             action: 'create-documentation',
+            originalMessage: 'test',
           },
         },
       ]
@@ -86,6 +78,7 @@ describe('PineconeUtil class', () => {
           values: Array.from({ length: 1536 }, () => Math.random()),
           metadata: {
             action: 'create-documentation',
+            originalMessage: 'test',
           },
         },
         {
@@ -93,6 +86,7 @@ describe('PineconeUtil class', () => {
           values: Array.from({ length: 1536 }, () => Math.random()),
           metadata: {
             action: 'create-documentation',
+            originalMessage: 'test',
           },
         },
       ]
@@ -103,7 +97,7 @@ describe('PineconeUtil class', () => {
       const userMessageEmbedding = Array.from({ length: 1536 }, () =>
         Math.random(),
       )
-      const result = await pineconeUtil.getClosestMatch(userMessageEmbedding)
+      const result = await pineconeUtil.getClosestMatchs(userMessageEmbedding)
 
       // Assert
       expect(result).toBeDefined()
@@ -113,6 +107,45 @@ describe('PineconeUtil class', () => {
       expect(typeof action).toBe('string')
       expect(score).toBeGreaterThanOrEqual(0)
       expect(score).toBeLessThanOrEqual(1)
+    }, 1000000)
+  })
+
+  describe('getClosestMatchForSmartAction', () => {
+    it('should return closest match embeddings for given message and smart action', async () => {
+      // Arrange
+      const embeddings: PineconeRecord<MessageMetadata>[] = [
+        {
+          id: 'create-documentation-1',
+          values: Array.from({ length: 1536 }, () => Math.random()),
+          metadata: {
+            action: 'create-documentation',
+            originalMessage: 'test',
+          },
+        },
+        {
+          id: 'create-documentation-2',
+          values: Array.from({ length: 1536 }, () => Math.random()),
+          metadata: {
+            action: 'create-documentation',
+            originalMessage: 'test',
+          },
+        },
+      ]
+      await pineconeUtil.upsertVectors(embeddings, true)
+
+      // Act
+      // Sample user message embedding to find a match for
+      const userMessageEmbedding = Array.from({ length: 1536 }, () =>
+        Math.random(),
+      )
+      const result = await pineconeUtil.getClosesMatchForSmartAction(
+        userMessageEmbedding,
+        'create-documentation',
+      )
+
+      // Assert
+      expect(result).toBeDefined()
+      expect(result).toBe('test')
     }, 1000000)
   })
 })
