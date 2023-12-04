@@ -1,67 +1,155 @@
-import { Pinecone } from '@pinecone-database/pinecone';
-import { PineconeRecord, RecordMetadata } from '@pinecone-database/pinecone/dist/data/types'
+import { Pinecone } from '@pinecone-database/pinecone'
+import { PineconeRecord } from '@pinecone-database/pinecone/dist/data/types'
+import { ClosestMatchSchema, ClosestExamplesSchema } from '../schemas/pinecone'
 
-interface IPineconeConfig {
-  apiKey: string;
-  environment: string;
-  indexName: string;
+type PineconeConfig = {
+  apiKey: string
+  environment: string
+  indexName: string
+}
+
+export type MessageMetadata = {
+  action: string
+  originalMessage: string
 }
 
 export default class PineconeUtil {
-  private pinecone: Pinecone;
-  private pineconeConfig: IPineconeConfig;
+  private pinecone: Pinecone
+  private pineconeConfig: PineconeConfig
 
-  constructor() {
-    const pineconeApiKey = process.env.PINECONE_API_KEY;
-    const pineconeEnvironment = process.env.PINECONE_ENVIRONMENT;
-    const pineconeIndexName = process.env.PINECONE_INDEX;
-    if (!pineconeApiKey || !pineconeEnvironment || !pineconeIndexName) {
-      throw new Error('Pinecone environment variables are missing.');
-    }
-
-    this.pineconeConfig = {
-      apiKey: pineconeApiKey,
-      environment: pineconeEnvironment,
-      indexName: pineconeIndexName
-    }
+  constructor(pinconeConfig: PineconeConfig) {
+    this.pineconeConfig = pinconeConfig
     this.pinecone = new Pinecone({
       apiKey: this.pineconeConfig.apiKey,
-      environment: this.pineconeConfig.environment
-    });
+      environment: this.pineconeConfig.environment,
+    })
+  }
+
+  async isIndexReady(): Promise<boolean> {
+    const indexes = await this.pinecone.listIndexes()
+    if (indexes.length === 0) {
+      return false
+    }
+
+    return indexes.find((index) => index.name === this.pineconeConfig.indexName)
+      ? true
+      : false
   }
 
   async refreshIndex(): Promise<void> {
-    await this.deleteIndex();
-    await this.createIndex();
+    await this.deleteIndex()
+    await this.createIndex()
   }
 
   async createIndex(): Promise<void> {
     await this.pinecone.createIndex({
       name: this.pineconeConfig.indexName,
       dimension: 1536,
-      metric: "cosine",
+      metric: 'cosine',
       waitUntilReady: true,
-    });
+    })
   }
 
   async deleteIndex(): Promise<void> {
-    let indexes = await this.pinecone.listIndexes();
+    let indexes = await this.pinecone.listIndexes()
 
-    // Delete index if it  exists
+    // Delete index if it exists
     if (indexes.length > 0) {
-      await this.pinecone.deleteIndex(this.pineconeConfig.indexName);
+      try {
+        await this.pinecone.deleteIndex(this.pineconeConfig.indexName)
+      } catch (e) {
+        console.error(e)
+      }
 
       // Wait until the index is deleted
       while (indexes.length !== 0) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        indexes = await this.pinecone.listIndexes();
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        indexes = await this.pinecone.listIndexes()
       }
     }
   }
 
-  async upsertVectors(embeddings: PineconeRecord<RecordMetadata>[]): Promise<void> {
-    const index = this.pinecone.index(this.pineconeConfig.indexName);
-    await index.upsert(embeddings);
+  async upsertVectors(
+    embeddings: PineconeRecord<MessageMetadata>[],
+    waitTillReady = false,
+  ): Promise<number> {
+    const index = this.pinecone.index<MessageMetadata>(
+      this.pineconeConfig.indexName,
+    )
+
+    try {
+      // Pinecone's implementation of upsert is not instant, instead it is eventually consistent.
+      // So it is really hard to test this function.
+      await index.upsert(embeddings)
+      while (waitTillReady) {
+        const stats = await index.describeIndexStats()
+        if (stats.totalRecordCount === embeddings.length) {
+          break
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+
+      return embeddings.length
+    } catch (e) {
+      console.error(e)
+      return 0
+    }
+  }
+
+  async getClosesMatchForSmartAction(
+    messageEmbedding: Array<number>,
+    action: string,
+  ): Promise<string | void> {
+    const index = this.pinecone.index<MessageMetadata>(
+      this.pineconeConfig.indexName,
+    )
+
+    const results = await index.query({
+      vector: messageEmbedding,
+      topK: 1,
+      includeMetadata: true,
+      filter: {
+        action: { $eq: action },
+      },
+    })
+
+    const parseResult = ClosestExamplesSchema.safeParse(results)
+    if (!parseResult.success) {
+      console.log('Bad matches found.')
+      return
+    }
+
+    const matches = parseResult.data.matches
+    return matches[0].metadata.originalMessage
+  }
+
+  async getClosestMatchs(
+    messageEmbedding: Array<number>,
+    k: number = 1,
+  ): Promise<[string, number] | void> {
+    const index = this.pinecone.index<MessageMetadata>(
+      this.pineconeConfig.indexName,
+    )
+
+    const results = await index.query({
+      vector: messageEmbedding,
+      topK: k,
+      includeMetadata: true,
+    })
+
+    const matches = results.matches
+    if (matches.length === 0) {
+      console.log('No matches found.')
+      return
+    }
+
+    const match = matches[0]
+    const result = ClosestMatchSchema.safeParse(match)
+    if (!result.success) {
+      console.log('Bad matches found.')
+      return
+    }
+
+    return [result.data.metadata.action, result.data.score]
   }
 }
-
