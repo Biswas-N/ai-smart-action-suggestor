@@ -150,5 +150,23 @@
     "Planning to integrate GitHub Actions with our project management tool. Can we meet to align on the workflow and notifications?",
     "Thinking about using GitHub Actions for automated issue labeling. Can we discuss the criteria and labels we should configure?",
     "Exploring ways to optimize GitHub Actions for faster builds. Can we meet to brainstorm strategies and potential improvements?"
+  ],
+  "create-ticket-on-project-management": [
+    "I found a bug that prevents users from logging in. I've already tried [steps to reproduce], and it seems to be consistent.",
+    "The website is loading very slowly, especially on [specific pages]. I've cleared my cache and tried different browsers, but the issue persists.",
+    "The search function isn't working as expected. It's returning irrelevant results or not finding anything at all, even for common keywords.",
+    "Encountered an error message when trying to [action]. The error code is [code number], and the message says [message text].",
+    "The design mockups for the new feature look great, but I noticed a few inconsistencies with the existing UI guidelines. Can we discuss this before moving forward?",
+    "I'd love to see a feature that allows users to [describe desired functionality]. This would be especially helpful for [specific use case].",
+    "found a bug with the import issue icon - it doesn't look like the same size & also color looks a bit off. let's fix this pls",
+    "Think it would be cool if we could integrate [external tool/service] with our platform. It would enable us to [describe benefits].",
+    "Users have been asking for a way to [describe desired functionality]. I think it's time we consider adding this feature to the roadmap.",
+    "Noticed that our competitors offer [feature] in their products. Could we explore adding something similar to ours?",
+    "I have an idea for a new feature that could potentially [describe positive outcomes]. Let's brainstorm this further!",
+    "Need someone to update the documentation for the [specific feature/process]. It's missing some crucial information and could be more user-friendly.",
+    "Can someone please migrate the old data from [old system] to the new one? I've prepared a migration plan and can assist with the process.",
+    "Would appreciate it if someone could take a look at my code for the [specific task]. I'm stuck on [specific issue] and could use some guidance.",
+    "We need to schedule a meeting to discuss the upcoming [event/milestone]. Can someone please create a calendar invite and add the relevant stakeholders?",
+    "I'm assigned to [task], but I need some clarification on the requirements. Can someone from the design team please review the mockups?"
   ]
 }

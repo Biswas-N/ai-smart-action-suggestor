@@ -8,6 +8,7 @@ export const availableActions = [
   'site-analytics',
   'meeting-creation',
   'github-actions',
+  'create-ticket-on-project-management',
 ]
 
 const systemTemplate = `
